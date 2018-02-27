@@ -1,3 +1,6 @@
+/* Esto se añadirá en la rama secundaria
+*/
+
 package literapp;
 
 import javax.swing.UIManager;
