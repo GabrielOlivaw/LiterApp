@@ -1,4 +1,4 @@
-/* Esto se añadirá en la rama secundaria
+/* Cambios hechos desde la rama secundaria
 */
 
 package literapp;
