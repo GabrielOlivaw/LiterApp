@@ -1,0 +1,798 @@
+package literapp;
+
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Blob;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableModel;
+
+/**
+ *
+ * @author gabag
+ */
+public class ListaJFrame extends javax.swing.JFrame {
+    
+    private static ListaJFrame instance;
+    
+    private ArrayList<Genero> generos;
+    
+    private ArrayList<Libro> libros;
+    private ArrayList<Libro> librosFiltrados;
+    
+    private byte[] imagenPortada;
+
+    private Libro libroSeleccionado;
+    
+    /**
+     * Creates new form ListaJFrame
+     */
+    public ListaJFrame() {
+        initComponents();
+        
+        crearListenerJTextFieldFiltro();
+        crearListenerJTable();
+        
+        cargarDatos();
+    }
+    
+    /**
+     * Implementación del patrón Singleton para tener una única ventana.
+     * 
+     * @return La instancia única de la ventana de lista de libros.
+     */
+    public static ListaJFrame getInstance() {
+        if (instance == null)
+            instance = new ListaJFrame();
+        
+        return instance;
+    }
+    
+    private void cargarDatos() {
+        
+        generos = new ArrayList<>();
+        libros = new ArrayList<>();
+        librosFiltrados = new ArrayList<>();
+        
+        Statement s;
+        
+        Connection con = ConectorMySQL.conectarBD();
+        
+        String consulta;
+        
+        try {
+            s = con.createStatement();
+            
+            consulta = "SELECT id, genero FROM generos";
+            ResultSet rs = s.executeQuery(consulta);
+            
+            while (rs.next())
+                generos.add(new Genero(rs.getInt(1), rs.getString(2)));
+            
+            consulta = "SELECT * FROM libros INNER JOIN generos ON libros.genero = generos.id";
+            rs = s.executeQuery(consulta);
+            
+            while (rs.next()) {
+                
+                Blob blobPortada = rs.getBlob("portada");
+                byte[] img = null;
+                
+                if (blobPortada != null) {
+                    img = blobPortada.getBytes(1, (int)blobPortada.length());
+                    imagenPortada = blobPortada.getBytes(1, (int)blobPortada.length());
+                }
+                
+                libros.add(new Libro(rs.getInt(1), rs.getString(2), 
+                        rs.getString(3), rs.getInt(4), 
+                        new Genero(rs.getInt(10), rs.getString(11)), 
+                        rs.getBoolean(6), rs.getString(7), rs.getString(8), img));
+                
+                librosFiltrados.add(new Libro(rs.getInt(1), rs.getString(2), 
+                        rs.getString(3), rs.getInt(4), 
+                        new Genero(rs.getInt(10), rs.getString(11)), 
+                        rs.getBoolean(6), rs.getString(7), rs.getString(8), img));
+            }
+                
+            
+        } catch (SQLException ex) {
+            //Logger.getLogger(ListaJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            JOptionPane.showMessageDialog(this, "Ha ocurrido algún error al "
+                    + "conectar con la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            try {
+                con.close();
+            } catch (SQLException ex) {
+                //Logger.getLogger(ListaJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                JOptionPane.showMessageDialog(this, "Ha ocurrido un error "
+                        + "durante la conexión con la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+            } catch (NullPointerException ex) {
+                System.out.println("El servidor está desconectado.");
+            }
+        }
+        
+        jComboBoxFiltroGenero.removeAllItems();
+        jComboBoxGenero.removeAllItems();
+        
+        for (int i = 0; i < generos.size(); i++) {
+            jComboBoxFiltroGenero.addItem(generos.get(i).getGenero());
+            jComboBoxGenero.addItem(generos.get(i).getGenero());
+        }
+        
+        actualizarTabla();
+        
+    }
+
+    /**
+     * This method is called from within the constructor to initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is always
+     * regenerated by the Form Editor.
+     */
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() {
+
+        jScrollPaneLibros = new javax.swing.JScrollPane();
+        jTableLibros = new javax.swing.JTable();
+        jComboBoxFiltro = new javax.swing.JComboBox<>();
+        jTextFieldFiltro = new javax.swing.JTextField();
+        jComboBoxFiltroGenero = new javax.swing.JComboBox<>();
+        jLabelFiltro = new javax.swing.JLabel();
+        jCheckBoxFiltroLeido = new javax.swing.JCheckBox();
+        jLabelFiltroGenero = new javax.swing.JLabel();
+        jLabelPortada = new javax.swing.JLabel();
+        jLabelTitulo = new javax.swing.JLabel();
+        jTextFieldTitulo = new javax.swing.JTextField();
+        jLabelAutor = new javax.swing.JLabel();
+        jTextFieldAutor = new javax.swing.JTextField();
+        jLabelPublicacion = new javax.swing.JLabel();
+        jSpinnerPublicacion = new javax.swing.JSpinner();
+        jLabelGenero = new javax.swing.JLabel();
+        jComboBoxGenero = new javax.swing.JComboBox<>();
+        jCheckBoxLeido = new javax.swing.JCheckBox();
+        jLabelDescripcion = new javax.swing.JLabel();
+        jScrollPaneDescripcion = new javax.swing.JScrollPane();
+        jTextAreaDescripcion = new javax.swing.JTextArea();
+        jLabelComentario = new javax.swing.JLabel();
+        jScrollPaneComentario = new javax.swing.JScrollPane();
+        jTextAreaComentario = new javax.swing.JTextArea();
+        jButtonAceptar = new javax.swing.JButton();
+        jButtonCancelar = new javax.swing.JButton();
+        jButtonEditar = new javax.swing.JButton();
+        jButtonPortada = new javax.swing.JButton();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Lista de libros");
+        setResizable(false);
+
+        jTableLibros.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null},
+                {null, null, null, null}
+            },
+            new String [] {
+                "Título", "Autor", "Género", "Leído"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.String.class, java.lang.String.class, java.lang.Boolean.class
+            };
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        jScrollPaneLibros.setViewportView(jTableLibros);
+        if (jTableLibros.getColumnModel().getColumnCount() > 0) {
+            jTableLibros.getColumnModel().getColumn(0).setResizable(false);
+            jTableLibros.getColumnModel().getColumn(0).setPreferredWidth(280);
+            jTableLibros.getColumnModel().getColumn(1).setResizable(false);
+            jTableLibros.getColumnModel().getColumn(1).setPreferredWidth(280);
+            jTableLibros.getColumnModel().getColumn(2).setResizable(false);
+            jTableLibros.getColumnModel().getColumn(2).setPreferredWidth(100);
+            jTableLibros.getColumnModel().getColumn(3).setResizable(false);
+            jTableLibros.getColumnModel().getColumn(3).setPreferredWidth(40);
+        }
+
+        jComboBoxFiltro.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Título", "Autor", "Género", "Leído" }));
+        jComboBoxFiltro.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxFiltroActionPerformed(evt);
+            }
+        });
+
+        jComboBoxFiltroGenero.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboBoxFiltroGenero.setEnabled(false);
+        jComboBoxFiltroGenero.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jComboBoxFiltroGeneroActionPerformed(evt);
+            }
+        });
+
+        jLabelFiltro.setText("Filtrar");
+
+        jCheckBoxFiltroLeido.setText("Leído");
+        jCheckBoxFiltroLeido.setEnabled(false);
+
+        jLabelFiltroGenero.setText("Género");
+        jLabelFiltroGenero.setEnabled(false);
+
+        jLabelPortada.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
+        jLabelPortada.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabelPortada.setText("[Portada]");
+
+        jLabelTitulo.setText("Título");
+
+        jTextFieldTitulo.setEnabled(false);
+
+        jLabelAutor.setText("Autor");
+
+        jTextFieldAutor.setEnabled(false);
+
+        jLabelPublicacion.setText("Año publicación");
+
+        jSpinnerPublicacion.setEnabled(false);
+
+        jLabelGenero.setText("Género");
+
+        jComboBoxGenero.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jComboBoxGenero.setEnabled(false);
+
+        jCheckBoxLeido.setText("Leído");
+        jCheckBoxLeido.setEnabled(false);
+        jCheckBoxLeido.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+
+        jLabelDescripcion.setText("Descripción");
+
+        jTextAreaDescripcion.setColumns(40);
+        jTextAreaDescripcion.setLineWrap(true);
+        jTextAreaDescripcion.setRows(5);
+        jTextAreaDescripcion.setWrapStyleWord(true);
+        jTextAreaDescripcion.setEnabled(false);
+        jScrollPaneDescripcion.setViewportView(jTextAreaDescripcion);
+
+        jLabelComentario.setText("Comentario");
+
+        jTextAreaComentario.setColumns(40);
+        jTextAreaComentario.setLineWrap(true);
+        jTextAreaComentario.setRows(5);
+        jTextAreaComentario.setWrapStyleWord(true);
+        jTextAreaComentario.setEnabled(false);
+        jScrollPaneComentario.setViewportView(jTextAreaComentario);
+
+        jButtonAceptar.setText("Aceptar");
+        jButtonAceptar.setEnabled(false);
+        jButtonAceptar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonAceptarActionPerformed(evt);
+            }
+        });
+
+        jButtonCancelar.setText("Cancelar");
+        jButtonCancelar.setEnabled(false);
+        jButtonCancelar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonCancelarActionPerformed(evt);
+            }
+        });
+
+        jButtonEditar.setText("Editar");
+        jButtonEditar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonEditarActionPerformed(evt);
+            }
+        });
+
+        jButtonPortada.setText("Cambiar portada");
+        jButtonPortada.setEnabled(false);
+        jButtonPortada.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButtonPortadaActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
+        getContentPane().setLayout(layout);
+        layout.setHorizontalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jLabelFiltro)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(jComboBoxFiltro, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(jLabelFiltroGenero))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(jComboBoxFiltroGenero, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(jCheckBoxFiltroLeido))
+                                    .addComponent(jTextFieldFiltro)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jButtonPortada)
+                                    .addComponent(jLabelPortada, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabelTitulo)
+                                            .addComponent(jLabelAutor))
+                                        .addGap(20, 20, 20)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                            .addComponent(jTextFieldTitulo, javax.swing.GroupLayout.DEFAULT_SIZE, 178, Short.MAX_VALUE)
+                                            .addComponent(jTextFieldAutor))
+                                        .addGap(20, 20, 20)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabelPublicacion)
+                                            .addComponent(jLabelGenero))
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jSpinnerPublicacion, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(jComboBoxGenero, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                            .addComponent(jButtonEditar)
+                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                                .addComponent(jLabelDescripcion)
+                                                .addComponent(jScrollPaneDescripcion, javax.swing.GroupLayout.PREFERRED_SIZE, 225, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                                .addComponent(jCheckBoxLeido)))
+                                        .addGap(18, 18, 18)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabelComentario)
+                                            .addComponent(jScrollPaneComentario, javax.swing.GroupLayout.PREFERRED_SIZE, 225, javax.swing.GroupLayout.PREFERRED_SIZE))))))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPaneLibros, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 640, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(jButtonCancelar)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jButtonAceptar)))))
+                .addContainerGap())
+        );
+        layout.setVerticalGroup(
+            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jComboBoxFiltro, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jTextFieldFiltro, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabelFiltro))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jComboBoxFiltroGenero, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jCheckBoxFiltroLeido)
+                    .addComponent(jLabelFiltroGenero))
+                .addGap(18, 18, 18)
+                .addComponent(jScrollPaneLibros, javax.swing.GroupLayout.PREFERRED_SIZE, 180, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(jLabelTitulo)
+                                .addComponent(jLabelPublicacion)
+                                .addComponent(jSpinnerPublicacion, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jTextFieldTitulo))
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabelAutor)
+                            .addComponent(jTextFieldAutor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabelGenero)
+                            .addComponent(jComboBoxGenero, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabelDescripcion)
+                            .addComponent(jLabelComentario))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPaneDescripcion, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jScrollPaneComentario, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jLabelPortada, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jCheckBoxLeido)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jButtonCancelar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButtonEditar)
+                        .addComponent(jButtonPortada))
+                    .addComponent(jButtonAceptar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
+        );
+
+        pack();
+        setLocationRelativeTo(null);
+    }// </editor-fold>//GEN-END:initComponents
+
+    private void actualizarTabla() {
+        DefaultTableModel model = (DefaultTableModel)jTableLibros.getModel();
+        model.setRowCount(0);
+        
+        librosFiltrados.stream().forEach((_item) -> {
+            model.addRow(new Object[]{_item.getTitulo(), _item.getAutor(), 
+                _item.getGenero().getGenero(), _item.isLeido()});
+        });
+    }
+    
+    private void jComboBoxFiltroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxFiltroActionPerformed
+        // TODO add your handling code here:
+        switch(jComboBoxFiltro.getSelectedIndex()) {
+            case 0:
+                activarFiltroTexto();
+                break;
+            case 1:
+                activarFiltroTexto();
+                break;
+            case 2:
+                activarFiltroGenero();
+                break;
+            case 3:
+                activarFiltroLeido();
+                break;
+            default:
+                break;
+        }
+    }//GEN-LAST:event_jComboBoxFiltroActionPerformed
+
+    private void jComboBoxFiltroGeneroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxFiltroGeneroActionPerformed
+        // TODO add your handling code here:
+        
+    }//GEN-LAST:event_jComboBoxFiltroGeneroActionPerformed
+
+    private void jButtonAceptarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAceptarActionPerformed
+        // TODO add your handling code here:
+        
+        PreparedStatement ps;
+        
+        Connection con = ConectorMySQL.conectarBD();
+        
+        String modificar = "UPDATE libros SET titulo = ?, autor = ?, "
+                + "publicacion = ?, genero = ?, leido = ?, descripcion = ?, "
+                + "comentario = ?, portada = ? WHERE id = ?";
+        
+        try {
+            ps = con.prepareStatement(modificar);
+            
+            ps.setString(1, jTextFieldTitulo.getText());
+            ps.setString(2, jTextFieldAutor.getText());
+            ps.setInt(3, (int)jSpinnerPublicacion.getValue());
+            ps.setInt(4, generos.get(jComboBoxGenero.getSelectedIndex()).getId());
+            ps.setBoolean(5, jCheckBoxLeido.isSelected());
+            ps.setString(6, jTextAreaDescripcion.getText());
+            ps.setString(7, jTextAreaComentario.getText());
+            ps.setBinaryStream(8, new ByteArrayInputStream(imagenPortada), imagenPortada.length);
+            ps.setInt(9, libroSeleccionado.getId());
+            
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            Logger.getLogger(ListaJFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            try {
+                con.close();
+                
+                activarCamposLibro(false);
+                cargarDatos();
+            } catch (SQLException ex) {
+                Logger.getLogger(ListaJFrame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+        
+    }//GEN-LAST:event_jButtonAceptarActionPerformed
+
+    
+    private void jButtonEditarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonEditarActionPerformed
+        // TODO add your handling code here:
+        activarCamposLibro(true);
+    }//GEN-LAST:event_jButtonEditarActionPerformed
+
+    private void jButtonCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonCancelarActionPerformed
+        // TODO add your handling code here:
+        activarCamposLibro(false);
+    }//GEN-LAST:event_jButtonCancelarActionPerformed
+
+    /**
+     * Implementación del botón de insertar imagen. Abre un diálogo selector de 
+     * archivo, indicando que ha de ser un archivo de imagen (.jpg, .jpeg o .png)
+     * Si se ha seleccionado una imagen válida, la redimensiona para que se 
+     * muestre correctamente en la zona correspondiente. También la transforma 
+     * en array de bytes para su posterior guardado en la base de datos.
+     * 
+     * @param evt 
+     */
+    private void jButtonPortadaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonPortadaActionPerformed
+        // TODO add your handling code here:
+        JFileChooser selector = new JFileChooser();
+        selector.setFileFilter(new FileNameExtensionFilter(
+                "Archivos de imagen (*.jpg, *.jpeg, *.png)", 
+                new String[] {"jpg", "jpeg", "png"}));
+        
+        int result = selector.showOpenDialog(this);
+        
+        if (result == JFileChooser.APPROVE_OPTION) {
+            if (esImagen(selector.getSelectedFile().getName())) {
+                try {
+
+                    // Obtiene la imagen seleccionada.
+                    BufferedImage bimg = ImageIO.read(selector.getSelectedFile());
+
+                    // Redimensiona la imagen para mostrarla en la ventana.
+                    Image img = bimg.getScaledInstance(jLabelPortada.getWidth(), 
+                            jLabelPortada.getHeight(), Image.SCALE_SMOOTH);
+                    jLabelPortada.setIcon(new ImageIcon(img));
+
+                    /* Transforma la imagen sin redimensionar en array de bytes 
+                    para su posterior guardado en una base de datos.*/
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    ImageIO.write(bimg, "jpg", baos);
+                    baos.flush();
+                    imagenPortada = baos.toByteArray();
+                    baos.close();
+
+                } catch (IOException ex) {
+                    JOptionPane.showMessageDialog(this, "Ha ocurrido algún error "
+                            + "intentando leer la imagen seleccionada.", "Error", 
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(this, "No se ha seleccionado una "
+                        + "imagen válida (.jpg, .jpeg, .png)", "Aviso", 
+                        JOptionPane.WARNING_MESSAGE);
+            }
+        }
+    }//GEN-LAST:event_jButtonPortadaActionPerformed
+
+    
+    private void redimensionarPortadaJLabel(BufferedImage bi) {
+        
+    }
+    
+    /**
+     * Este método recibe una ruta de archivo y evalúa si es un archivo de 
+     * imagen con extensión .jpg, .jpeg o .png
+     * La extensión la obtiene dividiendo la ruta en un array utilizando el 
+     * caracter . como divisor y la extensión debería ser el último elemento 
+     * de dicho array.
+     * 
+     * @param ruta Ruta del archivo seleccionado
+     * @return true si la extensión del archivo es .jpg, .jpeg o .png
+     */
+    private boolean esImagen(String ruta) {
+        String extension = ruta.split("\\.")[ruta.split("\\.").length-1];
+        return extension.equals("jpg") || extension.equals("jpeg") || extension.equals("png");
+    }
+    
+    private void activarCamposLibro(boolean activar) {
+        jTextFieldTitulo.setEnabled(activar);
+        jTextFieldAutor.setEnabled(activar);
+        jSpinnerPublicacion.setEnabled(activar);
+        jComboBoxGenero.setEnabled(activar);
+        jTextAreaDescripcion.setEnabled(activar);
+        jTextAreaComentario.setEnabled(activar);
+        jCheckBoxLeido.setEnabled(activar);
+        jButtonPortada.setEnabled(activar);
+        jButtonAceptar.setEnabled(activar);
+        jButtonCancelar.setEnabled(activar);
+    }
+    
+    private void activarFiltroTexto() {
+        jTextFieldFiltro.setEnabled(true);
+        jLabelFiltroGenero.setEnabled(false);
+        jComboBoxFiltroGenero.setEnabled(false);
+        jCheckBoxFiltroLeido.setEnabled(false);
+    }
+    
+    private void activarFiltroGenero() {
+        jTextFieldFiltro.setEnabled(false);
+        jLabelFiltroGenero.setEnabled(true);
+        jComboBoxFiltroGenero.setEnabled(true);
+        jCheckBoxFiltroLeido.setEnabled(false);
+    }
+    
+    private void activarFiltroLeido() {
+        jTextFieldFiltro.setEnabled(false);
+        jLabelFiltroGenero.setEnabled(false);
+        jComboBoxFiltroGenero.setEnabled(false);
+        jCheckBoxFiltroLeido.setEnabled(true);
+    }
+    
+    /**
+     * 
+     * Se añade un DocumentListener al campo de texto para responder a lo que 
+     * vaya escribiendo el usuario. Se opta por este método frente a la 
+     * implementación de los eventos KeyTyped, KeyReleased y KeyPressed al tener 
+     * un comportamiento más previsible y menos propenso a errores. 
+     * 
+     * @see https://stackoverflow.com/questions/3953208/value-change-listener-to-jtextfield
+     */
+    private void crearListenerJTextFieldFiltro() {
+        jTextFieldFiltro.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                warn();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                warn();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                warn();
+            }
+            
+            public void warn() {
+                String buscar = jTextFieldFiltro.getText().toLowerCase();
+                
+                switch(jComboBoxFiltro.getSelectedIndex()) {
+                    case 0:
+                        librosFiltrados.clear();
+                        libros.stream().forEach((_libro) -> {
+                            if (_libro.getTitulo().toLowerCase().contains(buscar))
+                                librosFiltrados.add(_libro);
+                        });
+
+                        actualizarTabla();
+                        break;
+                    case 1:
+                        librosFiltrados.clear();
+                        libros.stream().forEach((_libro) -> {
+                            if (_libro.getAutor().toLowerCase().contains(buscar))
+                                librosFiltrados.add(_libro);
+                        });
+
+                        actualizarTabla();
+                        break;
+                    default:
+                        break;
+                }
+            }
+        });
+    }
+    
+    /**
+     * Se crea un oyente ListSelectionListener que responda al cambio de elemento 
+     * seleccionado en la tabla, obteniendo el libro correspondiente y rellenando 
+     * los campos inferiores para visualizarlos o editarlos.
+     * 
+     */
+    private void crearListenerJTable() {
+        activarCamposLibro(false);
+        jTableLibros.getSelectionModel().addListSelectionListener((ListSelectionEvent event) -> {
+            if (jTableLibros.getSelectedRow() != -1) {
+                libroSeleccionado = librosFiltrados.get(jTableLibros.getSelectedRow());            
+                jTextFieldTitulo.setText(libroSeleccionado.getTitulo());
+                jTextFieldAutor.setText(libroSeleccionado.getAutor());
+                jSpinnerPublicacion.setValue(libroSeleccionado.getFechaPublicacion());
+                jComboBoxGenero.setSelectedIndex(buscarGeneroSeleccionado(libroSeleccionado.getGenero().getId()));
+                jCheckBoxLeido.setSelected(libroSeleccionado.isLeido());
+                jTextAreaDescripcion.setText(libroSeleccionado.getDescripcion());
+                jTextAreaComentario.setText(libroSeleccionado.getComentario());
+
+                try {
+                    imagenPortada = libroSeleccionado.getPortada();
+                    jLabelPortada.setIcon(null);
+                    jLabelPortada.setText("");
+                    if (imagenPortada != null) {
+                        InputStream is = new ByteArrayInputStream(imagenPortada);
+                        BufferedImage bi = ImageIO.read(is);
+                        jLabelPortada.setIcon(new ImageIcon(bi.getScaledInstance(
+                                jLabelPortada.getWidth(), jLabelPortada.getHeight(), 
+                                Image.SCALE_SMOOTH)));
+                    }
+                    else
+                        jLabelPortada.setText("[Portada]");
+                } catch (IOException ex) {
+                    Logger.getLogger(ListaJFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        });
+    }
+    
+    /**
+     * Obtiene el índice en los comboboxes del género del libro seleccionado.
+     * 
+     * @param idgenero id del género del libro.
+     * @return índice correspondiente en los comboboxes.
+     */
+    private int buscarGeneroSeleccionado(int idgenero) {
+        boolean encontrado = false;
+        int i = 0;
+        
+        while (!encontrado && i < generos.size()) {
+            encontrado = idgenero == generos.get(i).getId();
+            if (!encontrado)
+                i++;
+        }
+        
+        return i;
+    }
+    
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Look and feel */
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException | InstantiationException | 
+                IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(LibrosJFrame.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                new ListaJFrame().setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButtonAceptar;
+    private javax.swing.JButton jButtonCancelar;
+    private javax.swing.JButton jButtonEditar;
+    private javax.swing.JButton jButtonPortada;
+    private javax.swing.JCheckBox jCheckBoxFiltroLeido;
+    private javax.swing.JCheckBox jCheckBoxLeido;
+    private javax.swing.JComboBox<String> jComboBoxFiltro;
+    private javax.swing.JComboBox<String> jComboBoxFiltroGenero;
+    private javax.swing.JComboBox<String> jComboBoxGenero;
+    private javax.swing.JLabel jLabelAutor;
+    private javax.swing.JLabel jLabelComentario;
+    private javax.swing.JLabel jLabelDescripcion;
+    private javax.swing.JLabel jLabelFiltro;
+    private javax.swing.JLabel jLabelFiltroGenero;
+    private javax.swing.JLabel jLabelGenero;
+    private javax.swing.JLabel jLabelPortada;
+    private javax.swing.JLabel jLabelPublicacion;
+    private javax.swing.JLabel jLabelTitulo;
+    private javax.swing.JScrollPane jScrollPaneComentario;
+    private javax.swing.JScrollPane jScrollPaneDescripcion;
+    private javax.swing.JScrollPane jScrollPaneLibros;
+    private javax.swing.JSpinner jSpinnerPublicacion;
+    private javax.swing.JTable jTableLibros;
+    private javax.swing.JTextArea jTextAreaComentario;
+    private javax.swing.JTextArea jTextAreaDescripcion;
+    private javax.swing.JTextField jTextFieldAutor;
+    private javax.swing.JTextField jTextFieldFiltro;
+    private javax.swing.JTextField jTextFieldTitulo;
+    // End of variables declaration//GEN-END:variables
+}
