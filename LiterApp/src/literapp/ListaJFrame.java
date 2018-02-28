@@ -240,6 +240,11 @@ public class ListaJFrame extends javax.swing.JFrame {
 
         jCheckBoxFiltroLeido.setText("Leído");
         jCheckBoxFiltroLeido.setEnabled(false);
+        jCheckBoxFiltroLeido.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jCheckBoxFiltroLeidoActionPerformed(evt);
+            }
+        });
 
         jLabelFiltroGenero.setText("Género");
         jLabelFiltroGenero.setEnabled(false);
@@ -455,15 +460,19 @@ public class ListaJFrame extends javax.swing.JFrame {
         switch(jComboBoxFiltro.getSelectedIndex()) {
             case 0:
                 activarFiltroTexto();
+                filtrarTitulos();
                 break;
             case 1:
                 activarFiltroTexto();
+                filtrarAutores();
                 break;
             case 2:
                 activarFiltroGenero();
+                filtrarGeneros();
                 break;
             case 3:
                 activarFiltroLeido();
+                filtrarLeidos();
                 break;
             default:
                 break;
@@ -473,8 +482,11 @@ public class ListaJFrame extends javax.swing.JFrame {
     private void jComboBoxFiltroGeneroActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBoxFiltroGeneroActionPerformed
         // TODO add your handling code here:
         
+        if (jComboBoxFiltroGenero.isEnabled())
+            filtrarGeneros();
     }//GEN-LAST:event_jComboBoxFiltroGeneroActionPerformed
 
+    
     private void jButtonAceptarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButtonAceptarActionPerformed
         // TODO add your handling code here:
         
@@ -577,9 +589,58 @@ public class ListaJFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_jButtonPortadaActionPerformed
 
+    private void jCheckBoxFiltroLeidoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCheckBoxFiltroLeidoActionPerformed
+        // TODO add your handling code here:
+        if (jCheckBoxFiltroLeido.isEnabled())
+            filtrarLeidos();
+    }//GEN-LAST:event_jCheckBoxFiltroLeidoActionPerformed
+
+    private void filtrarTitulos() {
+        librosFiltrados.clear();
+        libros.stream().forEach((_libro) -> {
+            if (_libro.getTitulo().toLowerCase().contains(jTextFieldFiltro.getText().toLowerCase()))
+                librosFiltrados.add(_libro);
+        });
+
+        actualizarTabla();
+    }
     
-    private void redimensionarPortadaJLabel(BufferedImage bi) {
+    private void filtrarAutores() {
+        librosFiltrados.clear();
+        libros.stream().forEach((_libro) -> {
+            if (_libro.getAutor().toLowerCase().contains(jTextFieldFiltro.getText().toLowerCase()))
+                librosFiltrados.add(_libro);
+        });
+
+        actualizarTabla();
+    }
+    
+    private void filtrarGeneros() {
         
+        if (libros.size() > 0 && jComboBoxFiltroGenero.getSelectedIndex() != -1) {
+            librosFiltrados.clear();
+
+            libros.stream().forEach((_libro) -> {
+                if (_libro.getGenero().getId() == 
+                        generos.get(jComboBoxFiltroGenero.getSelectedIndex()).getId())
+                    librosFiltrados.add(_libro);
+            });
+
+            actualizarTabla();
+        }
+    }
+    
+    private void filtrarLeidos() {
+        if (libros.size() > 0) {
+            librosFiltrados.clear();
+
+            libros.stream().forEach((_libro) -> {
+                if (_libro.isLeido() == jCheckBoxFiltroLeido.isSelected())
+                    librosFiltrados.add(_libro);
+            });
+
+            actualizarTabla();
+        }
     }
     
     /**
@@ -658,26 +719,13 @@ public class ListaJFrame extends javax.swing.JFrame {
             }
             
             public void warn() {
-                String buscar = jTextFieldFiltro.getText().toLowerCase();
                 
                 switch(jComboBoxFiltro.getSelectedIndex()) {
                     case 0:
-                        librosFiltrados.clear();
-                        libros.stream().forEach((_libro) -> {
-                            if (_libro.getTitulo().toLowerCase().contains(buscar))
-                                librosFiltrados.add(_libro);
-                        });
-
-                        actualizarTabla();
+                        filtrarTitulos();
                         break;
                     case 1:
-                        librosFiltrados.clear();
-                        libros.stream().forEach((_libro) -> {
-                            if (_libro.getAutor().toLowerCase().contains(buscar))
-                                librosFiltrados.add(_libro);
-                        });
-
-                        actualizarTabla();
+                        filtrarAutores();
                         break;
                     default:
                         break;
